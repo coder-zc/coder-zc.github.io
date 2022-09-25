@@ -1,0 +1,718 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/cannot.jpg">
+  <link rel="icon" href="/img/cannot.jpg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="coder-zc">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="前言2022年0531日1:30记录一下，晚上数据中台课上，突然发现自己作业里部署到服务器上docker中的数据库被黑掉了，密码设置为123456不是你黑我数据库的理由啊！TNND，不知道你怎么办到的，0521注册了这个超级管理员，把我的数据库全部给删了，仅仅在docker容器的日志查到这么一点记录。是不是人啊，如果是黑客闲的蛋疼啊！我这一个选修课作业的数据库的数据也没啥价值，当然我也没有给数据库">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库被删了之后怎么办">
+<meta property="og:url" content="http://example.com/2022/06/06/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A2%AB%E5%88%A0%E4%BA%86%E4%B9%8B%E5%90%8E%E6%80%8E%E4%B9%88%E5%8A%9E/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="前言2022年0531日1:30记录一下，晚上数据中台课上，突然发现自己作业里部署到服务器上docker中的数据库被黑掉了，密码设置为123456不是你黑我数据库的理由啊！TNND，不知道你怎么办到的，0521注册了这个超级管理员，把我的数据库全部给删了，仅仅在docker容器的日志查到这么一点记录。是不是人啊，如果是黑客闲的蛋疼啊！我这一个选修课作业的数据库的数据也没啥价值，当然我也没有给数据库">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2022/jpeg/601906/1653932634456-fe729092-7215-4cb6-aa48-2b99ab2e10d5.jpeg#clientId=ubf84f527-5dec-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=100&id=u6ccec52a&margin=%5Bobject%20Object%5D&name=%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202022-05-30%20190531.jpg&originHeight=100&originWidth=369&originalType=binary&ratio=1&rotation=0&showTitle=false&size=13948&status=done&style=none&taskId=u8a106030-e275-4283-85c6-c36eb8ef8ba&title=&width=369">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2022/jpeg/601906/1653932634486-c9bb27c3-1f44-4175-af97-65e81fecc589.jpeg#clientId=ubf84f527-5dec-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=318&id=u2008a0c7&margin=%5Bobject%20Object%5D&name=%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202022-05-30%20184920.jpg&originHeight=318&originWidth=1233&originalType=binary&ratio=1&rotation=0&showTitle=false&size=71862&status=done&style=none&taskId=ue4f9912e-d5d6-4475-a42e-d0dc475265c&title=&width=1233">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2022/png/601906/1653933524571-f3936a81-5f8d-4fce-bb2b-6475a065f27f.png#clientId=ubf84f527-5dec-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=226&id=u4cbcae65&margin=%5Bobject%20Object%5D&name=image.png&originHeight=226&originWidth=306&originalType=binary&ratio=1&rotation=0&showTitle=false&size=12952&status=done&style=none&taskId=u5c968b15-511a-44ed-9132-94ad6182e94&title=&width=306">
+<meta property="article:published_time" content="2022-06-06T12:46:35.000Z">
+<meta property="article:modified_time" content="2022-09-25T04:42:05.970Z">
+<meta property="article:author" content="coder-zc">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="备份">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://cdn.nlark.com/yuque/0/2022/jpeg/601906/1653932634456-fe729092-7215-4cb6-aa48-2b99ab2e10d5.jpeg#clientId=ubf84f527-5dec-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=100&id=u6ccec52a&margin=%5Bobject%20Object%5D&name=%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202022-05-30%20190531.jpg&originHeight=100&originWidth=369&originalType=binary&ratio=1&rotation=0&showTitle=false&size=13948&status=done&style=none&taskId=u8a106030-e275-4283-85c6-c36eb8ef8ba&title=&width=369">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>数据库被删了之后怎么办 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.3","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>长久的个人博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/girl.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="数据库被删了之后怎么办"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-author" aria-hidden="true"></i>
+        coder-zc
+      </span>
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-06-06 20:46" pubdate>
+          星期一, 六月 6日 2022, 8:46 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          <!-- compatible with older versions-->
+          2.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          <!-- compatible with older versions-->
+          20 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">数据库被删了之后怎么办</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>2022年0531日1:30记录一下，晚上数据中台课上，突然发现自己作业里部署到服务器上docker中的数据库被黑掉了，密码设置为123456不是你黑我数据库的理由啊！TNND，不知道你怎么办到的，0521注册了这个超级管理员，把我的数据库全部给删了，仅仅在docker容器的日志查到这么一点记录。是不是人啊，如果是黑客闲的蛋疼啊！我这一个选修课作业的数据库的数据也没啥价值，当然我也没有给数据库备份，所以就是我又凭着记忆重建了数据库，边弄的时候边问候你这个《小可爱》。吃一堑，长一智，仅此一事，对于数据库的管理我一定要慎重，无论大小。所以一定要做好数据库的备份，以及定期修改密码。<br><img src="https://cdn.nlark.com/yuque/0/2022/jpeg/601906/1653932634456-fe729092-7215-4cb6-aa48-2b99ab2e10d5.jpeg#clientId=ubf84f527-5dec-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=100&id=u6ccec52a&margin=%5Bobject%20Object%5D&name=%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202022-05-30%20190531.jpg&originHeight=100&originWidth=369&originalType=binary&ratio=1&rotation=0&showTitle=false&size=13948&status=done&style=none&taskId=u8a106030-e275-4283-85c6-c36eb8ef8ba&title=&width=369" srcset="/img/loading.gif" lazyload alt="屏幕截图 2022-05-30 190531.jpg"><img src="https://cdn.nlark.com/yuque/0/2022/jpeg/601906/1653932634486-c9bb27c3-1f44-4175-af97-65e81fecc589.jpeg#clientId=ubf84f527-5dec-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=318&id=u2008a0c7&margin=%5Bobject%20Object%5D&name=%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202022-05-30%20184920.jpg&originHeight=318&originWidth=1233&originalType=binary&ratio=1&rotation=0&showTitle=false&size=71862&status=done&style=none&taskId=ue4f9912e-d5d6-4475-a42e-d0dc475265c&title=&width=1233" srcset="/img/loading.gif" lazyload alt="屏幕截图 2022-05-30 184920.jpg"></p>
+<h3 id="数据库介绍"><a href="#数据库介绍" class="headerlink" title="数据库介绍"></a>数据库介绍</h3><p>版本：MySQL8.x<br>环境：docker<br>【注】：mysql8.x以后mysql数据库中的user表无password字段，故网上MySQL5.x的教程不适用。</p>
+<h3 id="数据库密码修改"><a href="#数据库密码修改" class="headerlink" title="数据库密码修改"></a>数据库密码修改</h3><h4 id="可以登录数据库"><a href="#可以登录数据库" class="headerlink" title="可以登录数据库"></a>可以登录数据库</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">登录数据库</span><br>mysql -uroot -p密码<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">选中数据库</span><br>use mysql;<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">修改密码</span><br>ALTER USER &#x27;root&#x27;@&#x27;%&#x27; IDENTIFIED BY &#x27;新密码&#x27; PASSWORD EXPIRE NEVER;<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">修改本地密码</span><br>ALTER USER &#x27;root&#x27;@&#x27;localhost&#x27; IDENTIFIED BY &#x27;新密码&#x27;;<br><br>【注】：两条命令都要执行，一开始我只执行了第二条命令，导致我本地密码修改了，远程密码没有修改，即navicat连接数据库密码没有改变。<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">刷新</span><br>flush privileges;<br></code></pre></td></tr></table></figure>
+<h4 id="无法登录数据库"><a href="#无法登录数据库" class="headerlink" title="无法登录数据库"></a>无法登录数据库</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">对于docker容器这种情况</span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">进入docker终端</span><br>docker exec -it mysql的容器名 /bin/bash<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">进入</span><br>cd /etc/mysql/conf.d/<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">打开docker.cnf文件</span><br>vi docker.cnf<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_">#</span><span class="language-bash">加入这行命令，免密登录，直接输入mysql即可登录</span><br>skip-grant-tables<br><br>【注】：docker里第一次安装vim可能失败，需要先执行，然后执行安装vim命令<br>apt-get install update<br>apt-get install vim<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">修改完后需要退出重启docker容器</span><br>进入mysql后参照可以登录数据库的情况修改密码，如果密码无法修改，请将docker.cnf添加的命令行去掉，然后重启docker容器<br></code></pre></td></tr></table></figure>
+<h3 id="数据库备份与恢复"><a href="#数据库备份与恢复" class="headerlink" title="数据库备份与恢复"></a>数据库备份与恢复</h3><p>备份方法：</p>
+<ul>
+<li>mysqldump，可百度了解，mysql自带的备份工具；</li>
+<li>第三方软件：如Navicat的备份</li>
+</ul>
+<h4 id="mysqldump"><a href="#mysqldump" class="headerlink" title="mysqldump"></a>mysqldump</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">备份cpu数据库</span><br>mysqldump -uroot -pdaseDMP cpu &gt; cpu_0531.sql<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">压缩备份java</span><br>mysqldump -uroot -pdaseDMP java | gzip &gt; java_0531.sql.gz<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">备份power</span><br>mysqldump -uroot -pdaseDMP power &gt; power_0531.sql<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">备份power的一张表</span><br>mysqldump -p power power_ssj2008 &gt; power_power_ssj2008_0531.txt <br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">备份power表中的一部分</span><br>mysqldump -p -where=&quot;Result BETWEEN 20900 AND 30000&quot; power power_ssj2008 &gt; power_power_ssj2008_part_0531.txt <br><br></code></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs shell"><span class="hljs-meta prompt_"># </span><span class="language-bash">恢复cpu</span><br>mysql -uroot -pdaseDMP cpu &lt; cpu_0531.sql<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">恢复java</span><br>gzip -d &lt; java_0531.sql.gz | mysql -uroot -pdaseDMP java<br><span class="hljs-meta prompt_"></span><br><span class="hljs-meta prompt_"># </span><span class="language-bash">恢复power</span><br>mysql -uroot -pdaseDMP power &lt; power_0531.sql<br></code></pre></td></tr></table></figure>
+<h4 id="Navicat"><a href="#Navicat" class="headerlink" title="Navicat"></a>Navicat</h4><p>连接数据库，右键备份选择新建备份。<br><img src="https://cdn.nlark.com/yuque/0/2022/png/601906/1653933524571-f3936a81-5f8d-4fce-bb2b-6475a065f27f.png#clientId=ubf84f527-5dec-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=226&id=u4cbcae65&margin=%5Bobject%20Object%5D&name=image.png&originHeight=226&originWidth=306&originalType=binary&ratio=1&rotation=0&showTitle=false&size=12952&status=done&style=none&taskId=u5c968b15-511a-44ed-9132-94ad6182e94&title=&width=306" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<h3 id="创建新用户"><a href="#创建新用户" class="headerlink" title="创建新用户"></a>创建新用户</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs sql"># 创建一个新用户user1，密码为<span class="hljs-number">123456</span>，只能在本机登录<br><span class="hljs-keyword">create</span> <span class="hljs-keyword">user</span> <span class="hljs-string">&#x27;user1&#x27;</span>@<span class="hljs-string">&#x27;localhost&#x27;</span> identified <span class="hljs-keyword">by</span> <span class="hljs-string">&#x27;123456&#x27;</span><br><br># 创建一个新用户user1，密码为<span class="hljs-number">123456</span>，只能在任意机器登录<br><span class="hljs-keyword">create</span> <span class="hljs-keyword">user</span> <span class="hljs-string">&#x27;user1&#x27;</span>@<span class="hljs-string">&#x27;%&#x27;</span> identified <span class="hljs-keyword">by</span> <span class="hljs-string">&#x27;123456&#x27;</span><br><br><br># 授权<br><span class="hljs-keyword">grant</span> <span class="hljs-keyword">all</span> privileges <span class="hljs-keyword">on</span> 数据库 <span class="hljs-keyword">to</span> <span class="hljs-string">&#x27;用户名&#x27;</span>@<span class="hljs-string">&#x27;ip地址&#x27;</span><br><br># 撤销授权<br><span class="hljs-keyword">revoke</span> <span class="hljs-keyword">all</span> privilleges <span class="hljs-keyword">from</span> 数据库 <span class="hljs-keyword">to</span> <span class="hljs-string">&#x27;用户名&#x27;</span>@<span class="hljs-string">&#x27;ip地址&#x27;</span><br><br></code></pre></td></tr></table></figure>
+
+<h3 id="中台数据库备份"><a href="#中台数据库备份" class="headerlink" title="中台数据库备份"></a>中台数据库备份</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs shell">mysqldump -uroot -p1227apple dataMidStage &gt; dataMidStage_0916_bk.sql<br><span class="hljs-meta prompt_"># </span><span class="language-bash">将docker文件复制到宿主机</span><br>docker cp  mariadb:/dataMidStage_0916_bk.sql /home/coder-zc/dataMidStage/db_backup<br><span class="hljs-meta prompt_"># </span><span class="language-bash">将备份文件下载到本地电脑</span><br>scp -r root@47.102.204.29:/home/coder-zc/dataMidStage/db_backup/dataMidStage_0916_bk.sql ./<br></code></pre></td></tr></table></figure>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" class="category-chain-item">数据库</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/MySQL/">#MySQL</a>
+      
+        <a href="/tags/%E5%A4%87%E4%BB%BD/">#备份</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>数据库被删了之后怎么办</div>
+      <div>http://example.com/2022/06/06/数据库被删了之后怎么办/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>coder-zc</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年6月6日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/09/25/hello-world/" title="Hello World">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Hello World</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div class="disqus" style="width:100%">
+    <div id="disqus_thread"></div>
+    
+      <script type="text/javascript">
+        var disqus_config = function() {
+          this.page.url = 'http://example.com/2022/06/06/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A2%AB%E5%88%A0%E4%BA%86%E4%B9%8B%E5%90%8E%E6%80%8E%E4%B9%88%E5%8A%9E/';
+          this.page.identifier = '/2022/06/06/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A2%AB%E5%88%A0%E4%BA%86%E4%B9%8B%E5%90%8E%E6%80%8E%E4%B9%88%E5%8A%9E/';
+        };
+        Fluid.utils.loadComments('#disqus_thread', function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//' + 'fluid' + '.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', new Date());
+          (d.head || d.body).appendChild(s);
+        });
+      </script>
+    
+    <noscript>Please enable JavaScript to view the comments</noscript>
+  </div>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
